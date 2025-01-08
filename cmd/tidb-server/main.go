@@ -86,6 +86,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/push"
 	"github.com/tikv/client-go/v2/tikv"
 	"github.com/tikv/client-go/v2/txnkv/transaction"
+	"github.com/tikv/pd/client/pkg/circuitbreaker"
 	"go.uber.org/automaxprocs/maxprocs"
 	"go.uber.org/zap"
 )
@@ -803,6 +804,15 @@ func setGlobalVars() {
 
 	atomic.StoreUint64(&transaction.CommitMaxBackoff, uint64(parseDuration(cfg.TiKVClient.CommitTimeout).Seconds()*1000))
 	tikv.SetRegionCacheTTLSec(int64(cfg.TiKVClient.RegionCacheTTL))
+	tikv.ChangePdRegionMetaCircuitBreakerSettings(func(config *circuitbreaker.Settings) {
+		s := cfg.TiKVClient.CircuitBreakerSettingsList.PDRegionsMetadata
+		// config.ErrorRateThreshold is controlled by tidb_cb_pd_metadata_error_rate_threshold_pct sysvar
+		config.ErrorRateWindow = time.Duration(s.ErrorRateEvaluationWindowSeconds) * time.Second
+		config.MinQPSForOpen = uint32(s.MinQPSToOpen)
+		config.CoolDownInterval = time.Duration(s.CooldownIntervalSeconds) * time.Second
+		config.HalfOpenSuccessCount = uint32(s.HalfOpenSuccessCount)
+	})
+
 	domainutil.RepairInfo.SetRepairMode(cfg.RepairMode)
 	domainutil.RepairInfo.SetRepairTableList(cfg.RepairTableList)
 	executor.GlobalDiskUsageTracker.SetBytesLimit(cfg.TempStorageQuota)

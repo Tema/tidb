@@ -332,4 +332,4 @@ replace (
 )
 
 // pending https://github.com/tikv/client-go/pull/1543
-replace github.com/tikv/client-go/v2 => github.com/Tema/client-go/v2 v2.0.0-20250108010516-c325d48bed73
+replace github.com/tikv/client-go/v2 => github.com/Tema/client-go/v2 v2.0.0-20250108222013-bf5b9450dbba
