@@ -743,6 +743,11 @@ grpc-keepalive-timeout = 0.2
 [tikv-client.async-commit]
 keys-limit=123
 total-key-size-limit=1024
+[tikv-client.circuit-breaker.pd-region-metadata]
+error-rate-evaluation-window-seconds = 50
+min-qps-to-open=15
+cooldown-interval-seconds=25
+half-open-success-count=5
 [experimental]
 allow-expression-index = true
 [isolation-read]
@@ -784,6 +789,11 @@ max_connections = 200
 	require.Equal(t, uint64(1024), conf.TiKVClient.AsyncCommit.TotalKeySizeLimit)
 	require.Equal(t, uint(128), conf.TiKVClient.MaxBatchSize)
 	require.Equal(t, uint(6000), conf.TiKVClient.RegionCacheTTL)
+	cbSettings := conf.TiKVClient.CircuitBreakerSettingsList.PDRegionsMetadata
+	require.Equal(t, uint(50), cbSettings.ErrorRateEvaluationWindowSeconds)
+	require.Equal(t, uint(15), cbSettings.MinQPSToOpen)
+	require.Equal(t, uint(25), cbSettings.CooldownIntervalSeconds)
+	require.Equal(t, uint(5), cbSettings.HalfOpenSuccessCount)
 	require.Equal(t, int64(0), conf.TiKVClient.StoreLimit)
 	require.Equal(t, int64(8192), conf.TiKVClient.TTLRefreshedTxnSize)
 	require.Equal(t, time.Millisecond*200, conf.TiKVClient.GetGrpcKeepAliveTimeout())
